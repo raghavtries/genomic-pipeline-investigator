@@ -1,0 +1,17 @@
+{
+  "agent_log": [
+    {"step":"detect","msg":"⚠️ Drift detected in annotation class proportions (χ²=1e-6)."},
+    {"step":"hypothesize","msg":"Possible causes: DB version drift, schema mismatch, transcript policy inconsistency."},
+    {"step":"plan","msg":"Prioritizing DB version check because a cache update was logged."},
+    {"step":"probe","msg":"Re-annotating the same VCF with VEP v101 and v102 to measure reclassification."},
+    {"step":"result","msg":"18% of variants reclassified under v102; pattern aligns with prediction score drift."},
+    {"step":"remediate","msg":"Proposing remediation: pin annotation DB to v101."},
+    {"step":"validate","msg":"Replay of 20-sample micro-cohort restored drift metrics; investigation resolved."}
+  ],
+  "hypotheses": [
+    {"id":"annotation_drift","label":"Annotation database drift","confidence":0.60,"post_probe_confidence":0.92},
+    {"id":"caller_drift","label":"Variant caller drift","confidence":0.30,"post_probe_confidence":0.05},
+    {"id":"batch_effect","label":"Batch effect","confidence":0.10,"post_probe_confidence":0.03}
+  ],
+  "summary": "Root cause: Annotation drift due to DB update (v101→v102). Evidence: 18% reclassification; χ²=1e-6; explains 82% of prediction shift. Fix: Pinned DB to v101. Verification: replay cleared drift. Audit artifacts: tool versions, hashes, timestamps."
+}

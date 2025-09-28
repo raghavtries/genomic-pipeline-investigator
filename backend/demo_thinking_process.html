@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GIA Thinking Process Demo</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .content {
+            display: flex;
+            min-height: 600px;
+        }
+        .thinking-panel {
+            width: 40%;
+            padding: 30px;
+            border-right: 1px solid #e5e7eb;
+            background: #f9fafb;
+        }
+        .graph-panel {
+            width: 60%;
+            padding: 30px;
+            background: white;
+        }
+        .step {
+            margin-bottom: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #e5e7eb;
+            background: white;
+            transition: all 0.5s ease;
+        }
+        .step.active {
+            border-left-color: #3b82f6;
+            background: #eff6ff;
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        }
+        .step.completed {
+            border-left-color: #10b981;
+            background: #f0fdf4;
+        }
+        .step-number {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            color: #6b7280;
+            text-align: center;
+            line-height: 24px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 12px;
+        }
+        .step.active .step-number {
+            background: #3b82f6;
+            color: white;
+            animation: pulse 2s infinite;
+        }
+        .step.completed .step-number {
+            background: #10b981;
+            color: white;
+        }
+        .step-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+        .step-description {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .step-details {
+            color: #9ca3af;
+            font-size: 12px;
+            font-style: italic;
+        }
+        .graph-placeholder {
+            width: 100%;
+            height: 400px;
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+            font-size: 18px;
+            position: relative;
+            overflow: hidden;
+        }
+        .graph-animation {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(59, 130, 246, 0.1) 50%, transparent 70%);
+            animation: shimmer 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            margin-left: 8px;
+        }
+        .status-pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        .status-active {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+        .status-completed {
+            background: #d1fae5;
+            color: #059669;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧬 Genomics Investigator Agent</h1>
+            <p>Live Investigation Thinking Process</p>
+        </div>
+        <div class="content">
+            <div class="thinking-panel">
+                <h2>Agent Thinking Process</h2>
+                <div id="thinking-steps">
+                    <!-- Steps will be populated by JavaScript -->
+                </div>
+            </div>
+            <div class="graph-panel">
+                <h2>Knowledge Graph Evolution</h2>
+                <div class="graph-placeholder" id="graph-container">
+                    <div class="graph-animation"></div>
+                    <div>Knowledge Graph will evolve here...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const steps = [
+            {
+                step: 1,
+                title: "🔍 Detecting Anomalies",
+                description: "Analyzing pipeline metrics for statistical deviations",
+                details: "Scanning for statistical deviations in annotation metrics...",
+                completedDetails: "Found annotation drift: χ²=1e-6, effect=0.35",
+                graphUpdate: "highlight_anomaly"
+            },
+            {
+                step: 2,
+                title: "🧠 Ranking Hypotheses", 
+                description: "Evaluating potential root causes based on evidence",
+                details: "Evaluating potential root causes...",
+                completedDetails: "Top hypothesis: Annotation database drift (confidence: 92%)",
+                graphUpdate: "show_hypotheses"
+            },
+            {
+                step: 3,
+                title: "🔬 Running Counterfactual Probe",
+                description: "Testing hypothesis by re-annotating with different DB version",
+                details: "Running counterfactual test...",
+                completedDetails: "Probe result: 82% explanation, p<0.001",
+                graphUpdate: "show_probe_results"
+            },
+            {
+                step: 4,
+                title: "🔧 Proposing Remediation",
+                description: "Designing fix based on probe results",
+                details: "Designing remediation strategy...",
+                completedDetails: "Fix: Pin annotation DB to v101, validate on micro-cohort",
+                graphUpdate: "show_remediation"
+            },
+            {
+                step: 5,
+                title: "✅ Validating Solution",
+                description: "Testing remediation on micro-cohort samples",
+                details: "Validating fix on micro-cohort...",
+                completedDetails: "Validation: 2/2 samples passed, metrics restored",
+                graphUpdate: "show_validation"
+            }
+        ];
+
+        let currentStep = 0;
+        const container = document.getElementById('thinking-steps');
+        const graphContainer = document.getElementById('graph-container');
+
+        function createStepElement(step, index) {
+            const div = document.createElement('div');
+            div.className = 'step';
+            div.id = `step-${index}`;
+            
+            div.innerHTML = `
+                <div class="step-number">${step.step}</div>
+                <div class="step-title">${step.title}</div>
+                <div class="step-description">${step.description}</div>
+                <div class="step-details">${step.details}</div>
+            `;
+            
+            return div;
+        }
+
+        function typewriterEffect(element, text, callback) {
+            let index = 0;
+            element.innerHTML = '';
+            
+            const typeInterval = setInterval(() => {
+                if (index < text.length) {
+                    element.innerHTML = text.substring(0, index + 1) + '<span class="animate-pulse">|</span>';
+                    index++;
+                } else {
+                    clearInterval(typeInterval);
+                    element.innerHTML = text;
+                    if (callback) callback();
+                }
+            }, 50);
+        }
+
+        function updateStepStatus(index, status) {
+            const stepElement = document.getElementById(`step-${index}`);
+            const step = steps[index];
+            
+            stepElement.className = `step ${status}`;
+            
+            if (status === 'active') {
+                stepElement.innerHTML = `
+                    <div class="step-number">${step.step}</div>
+                    <div class="step-title">${step.title} <span class="status-badge status-active">💭 Thinking...</span></div>
+                    <div class="step-description">${step.description}</div>
+                    <div class="step-details" id="typing-${index}">${step.details}</div>
+                `;
+                
+                // Start typewriter effect
+                const detailsElement = document.getElementById(`typing-${index}`);
+                typewriterEffect(detailsElement, step.details, () => {
+                    // After typing, show completion and move to next step
+                    setTimeout(() => {
+                        updateStepStatus(index, 'completed');
+                        currentStep++;
+                        if (currentStep < steps.length) {
+                            setTimeout(() => processNextStep(), 1000);
+                        } else {
+                            // Final state
+                            graphContainer.innerHTML = `
+                                <div>🎉 Investigation Complete!</div>
+                                <div style="font-size: 14px; color: #6b7280; margin-top: 10px;">
+                                    Root cause identified and fixed
+                                </div>
+                            `;
+                        }
+                    }, 1000);
+                });
+            } else if (status === 'completed') {
+                stepElement.innerHTML = `
+                    <div class="step-number">✓</div>
+                    <div class="step-title">${step.title} <span class="status-badge status-completed">✓ Completed</span></div>
+                    <div class="step-description">${step.description}</div>
+                    <div class="step-details" style="color: #059669;">${step.completedDetails}</div>
+                `;
+            }
+        }
+
+        function updateGraph(updateType) {
+            const messages = {
+                'highlight_anomaly': '🔍 Highlighting annotation nodes with anomalies...',
+                'show_hypotheses': '🧠 Showing hypothesis ranking results...',
+                'show_probe_results': '🔬 Displaying counterfactual probe results...',
+                'show_remediation': '🔧 Showing proposed remediation...',
+                'show_validation': '✅ Displaying validation results...'
+            };
+            
+            graphContainer.innerHTML = `
+                <div class="graph-animation"></div>
+                <div>${messages[updateType] || 'Updating knowledge graph...'}</div>
+            `;
+        }
+
+        function startAnimation() {
+            function processNextStep() {
+                if (currentStep < steps.length) {
+                    // Update current step to active with typewriter
+                    updateStepStatus(currentStep, 'active');
+                    updateGraph(steps[currentStep].graphUpdate);
+                    
+                    // The typewriter effect will automatically trigger completion
+                    // after typing is done, which will call processNextStep again
+                } else {
+                    // Final state
+                    graphContainer.innerHTML = `
+                        <div>🎉 Investigation Complete!</div>
+                        <div style="font-size: 14px; color: #6b7280; margin-top: 10px;">
+                            Root cause identified and fixed
+                        </div>
+                    `;
+                }
+            }
+            
+            // Start the first step
+            setTimeout(processNextStep, 1000);
+        }
+
+        // Initialize
+        steps.forEach((step, index) => {
+            container.appendChild(createStepElement(step, index));
+        });
+
+        // Start the animation
+        setTimeout(startAnimation, 1000);
+    </script>
+</body>
+</html>

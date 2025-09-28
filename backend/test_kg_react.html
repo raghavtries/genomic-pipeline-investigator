@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>KG React Test</title>
+    <script type="text/javascript" src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/vis-data/standalone/umd/vis-data.min.js"></script>
+    <style>
+        #root {
+            width: 100%;
+            height: 500px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <h1>Knowledge Graph React Test</h1>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        const { Network } = vis;
+        const { DataSet } = vis;
+
+        const KnowledgeGraph = ({ kgData, caseId }) => {
+            const containerRef = useRef(null);
+            const networkRef = useRef(null);
+
+            useEffect(() => {
+                console.log('KnowledgeGraph useEffect:', { kgData, caseId });
+                if (kgData && containerRef.current) {
+                    console.log('Rendering graph with data:', kgData);
+                    renderGraph(kgData);
+                } else {
+                    console.log('No data or container:', { kgData, container: containerRef.current });
+                }
+            }, [kgData]);
+
+            const renderGraph = (data) => {
+                if (!containerRef.current) return;
+
+                try {
+                    console.log('Rendering graph with data:', data);
+                    
+                    // Prepare nodes and edges for vis-network
+                    const nodes = new DataSet(data.nodes.map(node => ({
+                        id: node.id,
+                        label: node.label,
+                        group: node.group,
+                        title: node.title,
+                        color: {
+                            background: node.color || getNodeColor(node.group),
+                            border: '#2B7CE9',
+                            highlight: {
+                                background: '#FFA500',
+                                border: '#FF0000'
+                            }
+                        },
+                        shape: 'box',
+                        font: {
+                            color: '#000000',
+                            size: 12
+                        }
+                    })));
+
+                    const edges = new DataSet(data.edges.map(edge => ({
+                        from: edge.from,
+                        to: edge.to,
+                        label: edge.label,
+                        color: {
+                            color: edge.color || '#848484',
+                            highlight: '#FF0000'
+                        },
+                        arrows: {
+                            to: {
+                                enabled: true,
+                                scaleFactor: 1
+                            }
+                        }
+                    })));
+
+                    const container = containerRef.current;
+                    const networkData = { nodes, edges };
+
+                    const options = {
+                        nodes: {
+                            shape: 'box',
+                            margin: 10,
+                            font: {
+                                size: 12,
+                                color: '#000000'
+                            }
+                        },
+                        edges: {
+                            width: 2,
+                            color: { color: '#848484' },
+                            arrows: {
+                                to: { enabled: true, scaleFactor: 1 }
+                            }
+                        },
+                        physics: {
+                            enabled: true,
+                            stabilization: { iterations: 100 }
+                        },
+                        interaction: {
+                            hover: true,
+                            selectConnectedEdges: false
+                        }
+                    };
+
+                    // Destroy existing network
+                    if (networkRef.current) {
+                        networkRef.current.destroy();
+                    }
+
+                    // Create new network
+                    networkRef.current = new Network(container, networkData, options);
+                    console.log('Network created successfully');
+                } catch (error) {
+                    console.error('Error rendering graph:', error);
+                    container.innerHTML = `<p>Error rendering graph: ${error.message}</p>`;
+                }
+            };
+
+            const getNodeColor = (group) => {
+                const colors = {
+                    'Run': '#FF6B6B',
+                    'Reference': '#4ECDC4', 
+                    'Aligner': '#45B7D1',
+                    'Caller': '#96CEB4',
+                    'VCF': '#FFEAA7',
+                    'Annotator': '#DDA0DD',
+                    'DBVersion': '#98D8C8'
+                };
+                return colors[group] || '#CCCCCC';
+            };
+
+            if (!kgData) {
+                return React.createElement('div', { className: 'h-full w-full' },
+                    React.createElement('div', { className: 'p-4 border-b border-gray-200' },
+                        React.createElement('h3', { className: 'text-lg font-semibold text-gray-800' }, 'Knowledge Graph'),
+                        React.createElement('p', { className: 'text-sm text-gray-600' }, 'Pipeline components and relationships')
+                    ),
+                    React.createElement('div', { className: 'flex items-center justify-center h-64' },
+                        React.createElement('div', { className: 'text-gray-500' }, 'No knowledge graph data available')
+                    )
+                );
+            }
+
+            return React.createElement('div', { className: 'h-full w-full' },
+                React.createElement('div', { className: 'p-4 border-b border-gray-200' },
+                    React.createElement('h3', { className: 'text-lg font-semibold text-gray-800' }, 'Knowledge Graph'),
+                    React.createElement('p', { className: 'text-sm text-gray-600' }, 'Pipeline components and relationships')
+                ),
+                React.createElement('div', { 
+                    ref: containerRef, 
+                    className: 'h-full w-full',
+                    style: { minHeight: '400px' }
+                })
+            );
+        };
+
+        const App = () => {
+            const [kgData, setKgData] = useState(null);
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                fetch('http://localhost:8000/api/kg/run_877f5ab2')
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Fetched KG data:', data);
+                        setKgData(data);
+                        setLoading(false);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching KG data:', error);
+                        setLoading(false);
+                    });
+            }, []);
+
+            if (loading) {
+                return React.createElement('div', { className: 'flex items-center justify-center h-64' },
+                    React.createElement('div', { className: 'text-lg' }, 'Loading knowledge graph...')
+                );
+            }
+
+            return React.createElement(KnowledgeGraph, { kgData, caseId: 'test' });
+        };
+
+        ReactDOM.render(React.createElement(App), document.getElementById('root'));
+    </script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</body>
+</html>

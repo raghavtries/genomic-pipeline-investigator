@@ -1,0 +1,47 @@
+{
+  "nodes": [
+    {
+      "id": "run_test_run",
+      "label": "Run test_run",
+      "group": "Run",
+      "title": "run_id: test_run\\ntimestamp: 2025-09-27T21:13:46.816461\\nmetadata: {'sample_id': 'test'}",
+      "color": "#FF6B6B"
+    },
+    {
+      "id": "ref_1c07fa29",
+      "label": "Ref None",
+      "group": "Reference",
+      "title": "build: None\\nhash: 1c07fa29f090f0386980fb3948770738ca1c7f8d712c40c3589260ce6b62656b\\npath: data/refs/grch37/chr21.fa",
+      "color": "#4ECDC4"
+    },
+    {
+      "id": "aligner_bwa",
+      "label": "Align bwa",
+      "group": "Aligner",
+      "title": "tag: bwa\\nversion: None",
+      "color": "#45B7D1"
+    },
+    {
+      "id": "caller_bcftools",
+      "label": "Call bcftools",
+      "group": "Caller",
+      "title": "tag: bcftools\\nversion: None",
+      "color": "#96CEB4"
+    },
+    {
+      "id": "vcf_missing",
+      "label": "VCF _missing",
+      "group": "VCF",
+      "title": "hash: missing\\npath: test.vcf",
+      "color": "#FFEAA7"
+    },
+    {
+      "id": "annotator_vep_v101",
+      "label": "Annot vep",
+      "group": "Annotator",
+      "title": "tool: vep\\ndb_version: v101",
+      "color": "#DDA0DD"
+    }
+  ],
+  "edges": []
+}

@@ -1,0 +1,8 @@
+{
+  "samples": [
+    {"id": "sample_001", "fq1": "data/inputs/sample_001_R1.fastq", "fq2": "data/inputs/sample_001_R2.fastq"},
+    {"id": "sample_002", "fq1": "data/inputs/sample_002_R1.fastq", "fq2": "data/inputs/sample_002_R2.fastq"}
+  ],
+  "reference": "data/refs/grch37/chr21.fa",
+  "expected_variants": 5
+}

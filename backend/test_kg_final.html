@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>KG Final Test</title>
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/vis-data/standalone/umd/vis-data.min.js"></script>
+    <style>
+        #network {
+            width: 100%;
+            height: 500px;
+            border: 1px solid #ccc;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>Knowledge Graph Final Test</h1>
+    <div id="status" class="status info">Loading...</div>
+    <div id="network"></div>
+    
+    <script>
+        const statusEl = document.getElementById('status');
+        
+        function updateStatus(message, type = 'info') {
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+        }
+        
+        // Test the knowledge graph with real data
+        fetch('http://localhost:8000/api/kg/run_4f7ca68a')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Fetched KG data:', data);
+                updateStatus(`✅ Successfully fetched KG data: ${data.nodes.length} nodes, ${data.edges.length} edges`, 'success');
+                
+                // Prepare nodes and edges for vis-network
+                const nodes = new vis.DataSet(data.nodes.map(node => ({
+                    id: node.id,
+                    label: node.label,
+                    group: node.group,
+                    title: node.title,
+                    color: {
+                        background: node.color || getNodeColor(node.group),
+                        border: '#2B7CE9',
+                        highlight: {
+                            background: '#FFA500',
+                            border: '#FF0000'
+                        }
+                    },
+                    shape: 'box',
+                    font: {
+                        color: '#000000',
+                        size: 12
+                    }
+                })));
+
+                const edges = new vis.DataSet(data.edges.map(edge => ({
+                    from: edge.from,
+                    to: edge.to,
+                    label: edge.label,
+                    color: {
+                        color: edge.color || '#848484',
+                        highlight: '#FF0000'
+                    },
+                    arrows: {
+                        to: {
+                            enabled: true,
+                            scaleFactor: 1
+                        }
+                    }
+                })));
+
+                const container = document.getElementById('network');
+                const networkData = { nodes, edges };
+
+                const options = {
+                    nodes: {
+                        shape: 'box',
+                        margin: 10,
+                        font: {
+                            size: 12,
+                            color: '#000000'
+                        }
+                    },
+                    edges: {
+                        width: 2,
+                        color: { color: '#848484' },
+                        arrows: {
+                            to: { enabled: true, scaleFactor: 1 }
+                        }
+                    },
+                    physics: {
+                        enabled: true,
+                        stabilization: { iterations: 100 }
+                    },
+                    interaction: {
+                        hover: true,
+                        selectConnectedEdges: false
+                    }
+                };
+
+                const network = new vis.Network(container, networkData, options);
+                
+                // Add event listeners
+                network.on('stabilizationIterationsDone', function() {
+                    updateStatus(`✅ Knowledge graph rendered successfully with ${data.nodes.length} nodes and ${data.edges.length} edges`, 'success');
+                });
+                
+                network.on('selectNode', function(params) {
+                    if (params.nodes.length > 0) {
+                        const nodeId = params.nodes[0];
+                        const node = nodes.get(nodeId);
+                        updateStatus(`Selected node: ${node.label} (${node.group})`, 'info');
+                    }
+                });
+                
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                updateStatus(`❌ Error: ${error.message}`, 'error');
+            });
+
+        function getNodeColor(group) {
+            const colors = {
+                'Run': '#FF6B6B',
+                'Reference': '#4ECDC4', 
+                'Aligner': '#45B7D1',
+                'Caller': '#96CEB4',
+                'VCF': '#FFEAA7',
+                'Annotator': '#DDA0DD',
+                'DBVersion': '#98D8C8'
+            }
+            return colors[group] || '#CCCCCC'
+        }
+    </script>
+</body>
+</html>
